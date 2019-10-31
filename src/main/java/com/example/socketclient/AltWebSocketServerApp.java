@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.HandlerMapping;
@@ -31,7 +29,6 @@ public class AltWebSocketServerApp {
     static final String BOOTSTRAP_SERVERS = "localhost:9092";
     static final String TOPIC = "stackoverflow-questions";
 
-    @Bean
     ReceiverOptions<Integer, String> receiverOptions() {
 
         System.out.println("SampleConsumer.SampleConsumer");
@@ -44,12 +41,10 @@ public class AltWebSocketServerApp {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS z dd MMM yyyy");
         ReceiverOptions<Integer, String> receiverOptions = ReceiverOptions.create(props);
         return receiverOptions;
     }
 
-    @Bean
     WebSocketHandlerAdapter webSocketHandlerAdapter() {
         return new WebSocketHandlerAdapter();
     }
@@ -61,10 +56,10 @@ public class AltWebSocketServerApp {
         ReceiverOptions<Integer, String> options = receiverOptions().subscription(Collections.singleton(TOPIC))
                 .addAssignListener(partitions -> log.debug("onPartitionsAssigned {}", partitions))
                 .addRevokeListener(partitions -> log.debug("onPartitionsRevoked {}", partitions));
-        Flux<ReceiverRecord<Integer, String>> kafkaFlux = KafkaReceiver.create(options).receive();
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS z dd MMM yyyy");
 
+
+        Flux<ReceiverRecord<Integer, String>> kafkaFlux = KafkaReceiver.create(options).receive();
         kafkaFlux.subscribe(record -> {
             ReceiverOffset offset = record.receiverOffset();
             System.out.printf("Received message: topic-partition=%s offset=%d timestamp=%s key=%d value=%s\n",
@@ -76,20 +71,19 @@ public class AltWebSocketServerApp {
             offset.acknowledge();
         });
 
-        return session ->
-
-                session.send(
-                        Flux.interval(Duration.ofSeconds(1))
-                                .map(n -> {
-                                    String nextMessage = "{'cnt':,'" + n.toString() + "'}";
-                                    log.info("Sending msg: " + nextMessage);
-                                    return nextMessage;
-                                })
-                                .map(session::textMessage)
-                );
+        return session -> {
+            return session.send(
+                    Flux.interval(Duration.ofSeconds(1))
+                            .map(n -> {
+                                String nextMessage = "{'cnt':,'" + n.toString() + "'}";
+                                log.info("Sending msg: " + nextMessage);
+                                return nextMessage;
+                            })
+                            .map(session::textMessage)
+            );
+        };
     }
 
-    @Bean
     HandlerMapping webSocketURLMapping() {
 
         SimpleUrlHandlerMapping simpleUrlHandlerMapping = new SimpleUrlHandlerMapping();
@@ -99,9 +93,5 @@ public class AltWebSocketServerApp {
                 Collections.singletonMap("*", new CorsConfiguration().applyPermitDefaultValues()));
         simpleUrlHandlerMapping.setOrder(10);
         return simpleUrlHandlerMapping;
-    }
-
-    public static void OLD_main(String[] args) {
-        SpringApplication.run(AltWebSocketServerApp.class, args);
     }
 }

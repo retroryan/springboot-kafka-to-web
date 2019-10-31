@@ -1,10 +1,11 @@
 package com.example.socketclient;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.kafka.receiver.KafkaReceiver;
@@ -18,18 +19,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SampleConsumer {
+@Log4j2
+@Service
+public class KafkaConsumer {
 
-    static final Logger log = LoggerFactory.getLogger(SampleConsumer.class.getName());
 
     static final String BOOTSTRAP_SERVERS = "localhost:9092";
 
     static final String TOPIC = "stackoverflow-questions";
 
+    final ApplicationEventPublisher publisher;
 
-    ReceiverOptions<Integer, String> receiverOptions() {
+    public KafkaConsumer(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
 
-        System.out.println("SampleConsumer.SampleConsumer");
+    private ReceiverOptions<Integer, String> receiverOptions() {
 
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -39,13 +44,12 @@ public class SampleConsumer {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        ReceiverOptions<Integer, String> receiverOptions = ReceiverOptions.create(props);
-        return receiverOptions;
+        return ReceiverOptions.create(props);
     }
 
     Disposable consumeMessages() {
 
-        System.out.println("SampleConsumer.consumeMessages");
+        log.info(" starting SampleConsumer.consumeMessages");
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS z dd MMM yyyy");
 
 
@@ -53,14 +57,19 @@ public class SampleConsumer {
                 .addAssignListener(partitions -> log.debug("onPartitionsAssigned {}", partitions))
                 .addRevokeListener(partitions -> log.debug("onPartitionsRevoked {}", partitions));
         Flux<ReceiverRecord<Integer, String>> kafkaFlux = KafkaReceiver.create(options).receive();
+
         return kafkaFlux.subscribe(record -> {
             ReceiverOffset offset = record.receiverOffset();
-            System.out.printf("Received message: topic-partition=%s offset=%d timestamp=%s key=%d value=%s\n",
+
+            this.publisher.publishEvent(new KafkaMessageEvent(record));
+
+            /*System.out.printf("Received message: topic-partition=%s offset=%d timestamp=%s key=%d value=%s\n",
                     offset.topicPartition(),
                     offset.offset(),
                     dateFormat.format(new Date(record.timestamp())),
                     record.key(),
-                    record.value());
+                    record.value().length());*/
+
             offset.acknowledge();
         });
     }
