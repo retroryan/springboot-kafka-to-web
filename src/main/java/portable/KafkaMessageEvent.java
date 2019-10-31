@@ -1,4 +1,4 @@
-package com.example.socketclient;
+package portable;
 
 import org.springframework.context.ApplicationEvent;
 import reactor.kafka.receiver.ReceiverRecord;

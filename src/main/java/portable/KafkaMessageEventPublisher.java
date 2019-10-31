@@ -1,4 +1,4 @@
-package com.example.socketclient;
+package portable;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;

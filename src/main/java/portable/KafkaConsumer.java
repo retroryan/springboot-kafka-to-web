@@ -1,4 +1,4 @@
-package com.example.socketclient;
+package portable;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -40,7 +40,7 @@ public class KafkaConsumer {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, "sample-consumer");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "sample-group");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, IntegerDeserializer.class);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
@@ -62,13 +62,13 @@ public class KafkaConsumer {
             ReceiverOffset offset = record.receiverOffset();
 
             this.publisher.publishEvent(new KafkaMessageEvent(record));
-
-            /*System.out.printf("Received message: topic-partition=%s offset=%d timestamp=%s key=%d value=%s\n",
+            String text = String.format("Received message: topic-partition=%s offset=%d timestamp=%s key=%s value=%s\n",
                     offset.topicPartition(),
                     offset.offset(),
                     dateFormat.format(new Date(record.timestamp())),
                     record.key(),
-                    record.value().length());*/
+                    record.value().length());
+            log.info(text);
 
             offset.acknowledge();
         });
