@@ -8,7 +8,15 @@
         }
     </style>
     <script>
-        const ws = new WebSocket('ws://localhost:8080/questions');
+
+        const page_url = new URL(window.location.href)
+        const host = page_url.host;
+        const ws_url = 'ws://' +host + '/questions'
+        console.log(page_url);
+        console.log(host);
+        console.log(ws_url);
+
+        const ws = new WebSocket(ws_url);
         ws.onopen = () => { document.getElementById('status').innerText = 'Most Popular StackOverflow Questions' };
         ws.onmessage = (message) => {
             const data = JSON.parse(message.data);
