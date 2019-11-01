@@ -92,7 +92,7 @@
                         <image>gcr.io/none-219021/spring-kafka-to-web</image>
                     </to>
                     <container>
-                        <mainClass>com.example.socketclient.SocketClientApp</mainClass>
+                        <mainClass>portable.DemoApp</mainClass>
                     </container>
                 </configuration>
             </plugin>
