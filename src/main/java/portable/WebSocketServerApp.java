@@ -35,6 +35,8 @@ public class WebSocketServerApp {
                 .create(eventPublisher)
                 .share();
 
+        log.info("Connected new WS client");
+
         return session -> {
             Flux<WebSocketMessage> messageFlux = publish
                     .map(evt -> {

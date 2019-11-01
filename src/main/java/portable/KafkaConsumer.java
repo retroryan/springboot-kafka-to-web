@@ -67,7 +67,7 @@ public class KafkaConsumer {
                     dateFormat.format(new Date(record.timestamp())),
                     record.key(),
                     record.value().length());
-            log.info(text);
+            log.debug(text);
 
             offset.acknowledge();
         });
