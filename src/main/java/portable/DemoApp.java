@@ -23,7 +23,7 @@ public class DemoApp {
     //This loads the index.html when you hit / to force a default homepage
     @Bean
     public RouterFunction<ServerResponse> htmlRouter(
-            @Value("classpath:index.html") Resource html) {
+            @Value("classpath:/static/index.html") Resource html) {
         return route(GET("/"), request
                 -> ok().contentType(MediaType.TEXT_HTML).syncBody(html)
         );
