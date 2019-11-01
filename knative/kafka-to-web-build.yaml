@@ -1,0 +1,9 @@
+apiVersion: serving.knative.dev/v1alpha1
+kind: Service
+metadata:
+  name: kafka-to-web
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/none-219021/kafka-to-web
