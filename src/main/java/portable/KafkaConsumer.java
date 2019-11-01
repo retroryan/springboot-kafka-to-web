@@ -24,9 +24,8 @@ import java.util.Map;
 public class KafkaConsumer {
 
 
-    static final String BOOTSTRAP_SERVERS = "localhost:9092";
-
-    static final String TOPIC = "stackoverflow-questions";
+    static String BOOTSTRAP_SERVERS = System.getenv("BOOTSTRAP_SERVER");
+    static final String TOPIC = System.getenv("KAFKA_TOPIC");
 
     final ApplicationEventPublisher publisher;
 
