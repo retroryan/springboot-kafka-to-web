@@ -9,6 +9,6 @@ spec:
         - image: gcr.io/none-219021/spring-kafka-to-web
           env:
             - name: BOOTSTRAP_SERVER
-              value: my-cluster-kafka-bootstrap:9092
+              value: my-cluster-kafka-bootstrap.kafka:9092
             - name: KAFKA_TOPIC
               value: stackoverflow-questions
