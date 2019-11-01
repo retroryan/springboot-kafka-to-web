@@ -6,4 +6,4 @@ spec:
   template:
     spec:
       containers:
-        - image: gcr.io/none-219021/kafka-to-web
+        - image: gcr.io/none-219021/spring-kafka-to-web
