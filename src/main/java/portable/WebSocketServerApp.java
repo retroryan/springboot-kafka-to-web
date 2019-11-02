@@ -9,7 +9,6 @@ import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import reactor.core.publisher.Flux;
-import reactor.kafka.receiver.ReceiverRecord;
 
 import java.util.Collections;
 import java.util.concurrent.Executor;
@@ -18,6 +17,12 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Configuration
 public class WebSocketServerApp {
+
+    private final Flux<String> publisher;
+
+    public WebSocketServerApp(KafkaConsumer kafkaConsumer) {
+        this.publisher = Flux.create(kafkaConsumer).share();
+    }
 
     @Bean
     Executor executor() {
@@ -30,21 +35,14 @@ public class WebSocketServerApp {
     }
 
     @Bean
-    WebSocketHandler webSocketHandler(KafkaMessageEventPublisher eventPublisher) {
-        Flux<KafkaMessageEvent> publish = Flux
-                .create(eventPublisher)
-                .share();
+    WebSocketHandler webSocketHandler() {
 
         log.info("Connected new WS client");
-
         return session -> {
-            Flux<WebSocketMessage> messageFlux = publish
-                    .map(evt -> {
-                        ReceiverRecord<Integer, String> record = (ReceiverRecord<Integer, String>) evt.getSource();
-                        return record.value();
-                    })
+            final Flux<WebSocketMessage> websocketMessage = publisher
                     .map(session::textMessage);
-            return session.send(messageFlux);
+
+            return session.send(websocketMessage);
         };
     }
 
